@@ -1,8 +1,9 @@
-﻿-- AutoFarm | Fluent Library Edition
+-- AutoFarm GUI | Fluent Style
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
 -- State
 local farmingActive = false
@@ -48,163 +49,217 @@ local function createPlatform(position)
     return platform
 end
 
--- Load Fluent Library
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+-- GUI Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AutoFarmGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = playerGui
 
--- Create Window
-local Window = Fluent:CreateWindow({
-    Title = "AutoFarm",
-    SubTitle = "made by beraatwr",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(520, 320),
-    Acrylic = true,
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl
-})
+-- Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 280, 0, 160)
+MainFrame.Position = UDim2.new(0, 20, 0.5, -80)
+MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
 
--- Tabs
-local Tabs = {
-    Main = Window:AddTab({ Title = "AutoFarm", Icon = "zap" }),
-    Misc = Window:AddTab({ Title = "Misc", Icon = "info" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
-}
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
 
--- Separator
-Tabs.Main:AddParagraph({
-    Title = "⚡ AutoFarm",
-    Content = "Teleports your character through all " .. #positions .. " checkpoints automatically. Use the toggle below to start or stop farming."
-})
+-- Outer glow stroke
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(60, 60, 60)
+MainStroke.Thickness = 1.2
+MainStroke.Transparency = 0.4
+MainStroke.Parent = MainFrame
 
--- Toggle
-local FarmToggle = Tabs.Main:AddToggle("FarmToggle", {
-    Title = "Auto Farm",
-    Description = "Start or stop automatic checkpoint farming",
-    Default = false
-})
+-- Top accent bar
+local AccentBar = Instance.new("Frame")
+AccentBar.Size = UDim2.new(1, 0, 0, 3)
+AccentBar.Position = UDim2.new(0, 0, 0, 0)
+AccentBar.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
+AccentBar.BorderSizePixel = 0
+AccentBar.ZIndex = 3
+AccentBar.Parent = MainFrame
 
--- Live status label (updated via paragraph trick)
-local LiveStatus = Tabs.Main:AddParagraph({
-    Title = "Live Status",
-    Content = "🔴 Idle"
-})
+local AccentCorner = Instance.new("UICorner")
+AccentCorner.CornerRadius = UDim.new(0, 12)
+AccentCorner.Parent = AccentBar
 
-local LiveCheckpoint = Tabs.Main:AddParagraph({
-    Title = "Progress",
-    Content = "Waiting to start..."
-})
+-- Header
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 44)
+Header.Position = UDim2.new(0, 0, 0, 3)
+Header.BackgroundTransparency = 1
+Header.Parent = MainFrame
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -50, 1, 0)
+TitleLabel.Position = UDim2.new(0, 16, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "⚡  AutoFarm"
+TitleLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+TitleLabel.TextSize = 15
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = Header
+
+local SubLabel = Instance.new("TextLabel")
+SubLabel.Size = UDim2.new(1, -50, 0, 14)
+SubLabel.Position = UDim2.new(0, 16, 0, 26)
+SubLabel.BackgroundTransparency = 1
+SubLabel.Text = "Checkpoint Runner"
+SubLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+SubLabel.TextSize = 11
+SubLabel.Font = Enum.Font.Gotham
+SubLabel.TextXAlignment = Enum.TextXAlignment.Left
+SubLabel.Parent = MainFrame
+
+-- Divider
+local Divider = Instance.new("Frame")
+Divider.Size = UDim2.new(1, -32, 0, 1)
+Divider.Position = UDim2.new(0, 16, 0, 54)
+Divider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+Divider.BorderSizePixel = 0
+Divider.Parent = MainFrame
+
+-- Status Indicator
+local StatusDot = Instance.new("Frame")
+StatusDot.Size = UDim2.new(0, 8, 0, 8)
+StatusDot.Position = UDim2.new(0, 16, 0, 74)
+StatusDot.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+StatusDot.BorderSizePixel = 0
+StatusDot.Parent = MainFrame
+
+local DotCorner = Instance.new("UICorner")
+DotCorner.CornerRadius = UDim.new(1, 0)
+DotCorner.Parent = StatusDot
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, -36, 0, 16)
+StatusLabel.Position = UDim2.new(0, 30, 0, 70)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Idle"
+StatusLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+StatusLabel.TextSize = 12
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+StatusLabel.Parent = MainFrame
+
+-- Checkpoint Progress Label
+local ProgressLabel = Instance.new("TextLabel")
+ProgressLabel.Size = UDim2.new(1, -16, 0, 14)
+ProgressLabel.Position = UDim2.new(0, 16, 0, 92)
+ProgressLabel.BackgroundTransparency = 1
+ProgressLabel.Text = "Checkpoint: —"
+ProgressLabel.TextColor3 = Color3.fromRGB(90, 90, 90)
+ProgressLabel.TextSize = 11
+ProgressLabel.Font = Enum.Font.Gotham
+ProgressLabel.TextXAlignment = Enum.TextXAlignment.Left
+ProgressLabel.Parent = MainFrame
+
+-- Toggle Button
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(1, -32, 0, 36)
+ToggleBtn.Position = UDim2.new(0, 16, 0, 112)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+ToggleBtn.BorderSizePixel = 0
+ToggleBtn.Text = "Start"
+ToggleBtn.TextColor3 = Color3.fromRGB(210, 210, 210)
+ToggleBtn.TextSize = 13
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.AutoButtonColor = false
+ToggleBtn.Parent = MainFrame
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 8)
+BtnCorner.Parent = ToggleBtn
+
+local BtnStroke = Instance.new("UIStroke")
+BtnStroke.Color = Color3.fromRGB(70, 70, 70)
+BtnStroke.Thickness = 1
+BtnStroke.Transparency = 0.5
+BtnStroke.Parent = ToggleBtn
+
+-- Tween helpers
+local function tweenColor(obj, prop, color, t)
+    TweenService:Create(obj, TweenInfo.new(t or 0.25), {[prop] = color}):Play()
+end
+
+local function setActive(active)
+    if active then
+        tweenColor(StatusDot, "BackgroundColor3", Color3.fromRGB(220, 220, 220), 0.3)
+        tweenColor(StatusLabel, "TextColor3", Color3.fromRGB(210, 210, 210), 0.3)
+        tweenColor(ToggleBtn, "BackgroundColor3", Color3.fromRGB(40, 40, 40), 0.3)
+        tweenColor(ToggleBtn, "TextColor3", Color3.fromRGB(240, 240, 240), 0.3)
+        BtnStroke.Color = Color3.fromRGB(180, 180, 180)
+        StatusLabel.Text = "Running"
+        ToggleBtn.Text = "Stop"
+    else
+        tweenColor(StatusDot, "BackgroundColor3", Color3.fromRGB(80, 80, 80), 0.3)
+        tweenColor(StatusLabel, "TextColor3", Color3.fromRGB(120, 120, 120), 0.3)
+        tweenColor(ToggleBtn, "BackgroundColor3", Color3.fromRGB(28, 28, 28), 0.3)
+        tweenColor(ToggleBtn, "TextColor3", Color3.fromRGB(210, 210, 210), 0.3)
+        BtnStroke.Color = Color3.fromRGB(70, 70, 70)
+        StatusLabel.Text = "Idle"
+        ToggleBtn.Text = "Start"
+        ProgressLabel.Text = "Checkpoint: —"
+    end
+end
+
+-- Button hover effects
+ToggleBtn.MouseEnter:Connect(function()
+    if not farmingActive then
+        tweenColor(ToggleBtn, "BackgroundColor3", Color3.fromRGB(45, 45, 45), 0.15)
+    end
+end)
+ToggleBtn.MouseLeave:Connect(function()
+    if not farmingActive then
+        tweenColor(ToggleBtn, "BackgroundColor3", Color3.fromRGB(28, 28, 28), 0.15)
+    end
+end)
 
 -- Farm Logic
 local function runFarm()
     while farmingActive do
         local ok, err = pcall(function()
+            local hrp = getCharacter()
             for i, pos in ipairs(positions) do
                 if not farmingActive then return end
-
-                -- Update live progress
-                if LiveCheckpoint then
-                    LiveCheckpoint:SetDesc(string.format("Checkpoint %d / %d", i, #positions))
-                end
-
+                ProgressLabel.Text = string.format("Checkpoint: %d / %d", i, #positions)
                 local platform = createPlatform(pos)
+                -- re-get hrp each teleport in case of respawn
                 local currentHrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
                 if currentHrp then
                     currentHrp.CFrame = CFrame.new(pos)
                 end
-
                 task.wait(1.5)
-
                 if platform and platform.Parent then
                     platform:Destroy()
                 end
             end
         end)
-
         if not ok then
-            if LiveCheckpoint then
-                LiveCheckpoint:SetDesc("⚠️ Error occurred, retrying...")
-            end
+            ProgressLabel.Text = "Retrying..."
             task.wait(1)
         end
-
         if farmingActive then
-            if LiveCheckpoint then
-                LiveCheckpoint:SetDesc("✅ Loop complete! Waiting 14s before next loop...")
-            end
+            ProgressLabel.Text = "Loop complete, waiting..."
             task.wait(14)
         end
     end
 end
 
--- Toggle Handler
-FarmToggle:OnChanged(function(value)
-    farmingActive = value
-
-    if value then
-        -- Start
-        if LiveStatus then
-            LiveStatus:SetDesc("🟢 Running")
-        end
+-- Toggle
+ToggleBtn.MouseButton1Click:Connect(function()
+    farmingActive = not farmingActive
+    setActive(farmingActive)
+    if farmingActive then
         farmThread = task.spawn(runFarm)
-    else
-        -- Stop
-        if LiveStatus then
-            LiveStatus:SetDesc("🔴 Idle")
-        end
-        if LiveCheckpoint then
-            LiveCheckpoint:SetDesc("Waiting to start...")
-        end
     end
 end)
-
--- Teleport to specific checkpoint button
-Tabs.Main:AddButton({
-    Title = "Skip to Last Checkpoint",
-    Description = "Instantly teleport to checkpoint #" .. #positions,
-    Callback = function()
-        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            local platform = createPlatform(positions[#positions])
-            hrp.CFrame = CFrame.new(positions[#positions])
-            task.delay(2, function()
-                if platform and platform.Parent then
-                    platform:Destroy()
-                end
-            end)
-            Fluent:Notify({
-                Title = "Teleported",
-                Content = "Moved to final checkpoint #" .. #positions,
-                Duration = 3
-            })
-        else
-            Fluent:Notify({
-                Title = "Error",
-                Content = "Character not found!",
-                Duration = 3
-            })
-        end
-    end
-})
-
--- Settings Tab
-InterfaceManager:SetLibrary(Fluent)
-SaveManager:SetLibrary(Fluent)
-
-InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
-
--- Save / Load config
-SaveManager:SetFolder("AutoFarmFluent")
-SaveManager:SetConfig("Default")
-SaveManager:LoadAutoloadConfig()
-
--- Select default tab
-Window:SelectTab(1)
-
--- Notify on load
-Fluent:Notify({
-    Title = "AutoFarm Loaded",
-    Content = "Press Left Ctrl to toggle the UI. Use the toggle to start farming.",
-    Duration = 5
-})
